@@ -36,9 +36,31 @@ function single_item_array($id){
     exit;
   }
   //var_dump($results->fetchAll(PDO::FETCH_ASSOC));
-  $catalog = $results->fetch();
+  $item = $results->fetch();
+    if(empty($item)){
+      return $item
+    ;}
 
-  return $catalog;
+     try{
+       $results = $db->prepare(
+       "SELECT fullname, role
+       FROM Media_People
+       JOIN People ON Media_People.people_id = People.people_id
+       WHERE Media_People.media_id = ?
+       ");
+
+       $results->bindParam(1, $id, PDO::PARAM_INT); //Used to filter input from ? above
+       $results->execute();
+       //echo "Got results";
+     }catch(Excepion $e){
+       echo "Unable to gather";
+       exit;
+     }
+
+     while($row = $results->fetch(PDO::FETCH_ASSOC)){
+       $item[$row["role"]][] = $row["fullname"];
+     }
+  return $item;
 }
 
 function get_item_html($id,$item) {
